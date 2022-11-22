@@ -5,7 +5,6 @@ const Part = ({part, exercises}) => <p> {part} {exercises} </p>
 const Total = ({total}) => <p>Number of exercises {total} </p>
 
 const Content = ({parts}) => {
-  console.log(parts);
   return (
     <>
       <Part  part={parts[0].name} exercises={parts[0].exercises} />
@@ -18,7 +17,6 @@ const Content = ({parts}) => {
 
 
 const Course = ({course}) => {
-  console.log(course)
   return (
     <div>
       <Header text={course.name} />
