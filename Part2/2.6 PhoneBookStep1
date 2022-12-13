@@ -1,0 +1,44 @@
+import { useState } from 'react' 
+import NewName from "./components/PersonalData"
+
+const App = () => {
+  const [person, setPerson] = useState([{name:'Artur Hellas'}])
+  const [newName, setNewName] = useState('')
+
+  const addNewName = (e) => {
+    e.preventDefault()
+    const nameObjet = {
+      name: newName,
+      id: person.length + 1
+    }
+    setPerson(person.concat(nameObjet))
+    setNewName('')
+  }
+
+  const handleNameChange = (e) => {
+    setNewName(e.target.value)
+  }
+
+  return (
+    <div>
+      <h2>PhoneBook</h2>
+      <form onSubmit={addNewName} >
+        <div>
+          name: <input value={newName} onChange={handleNameChange} />
+        </div>
+        <div>
+          <button type='submit'>Add</button>
+        </div>
+      </form>
+      <h2>Names</h2>
+      <ul>
+        {person.map(ele =>
+          <NewName key={ele.id} data={ele} />
+        )}
+      </ul>
+    </div>
+  )
+}
+
+export default App;
+
