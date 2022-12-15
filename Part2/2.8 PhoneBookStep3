@@ -1,0 +1,67 @@
+import { useState } from 'react' 
+import NewName from "./components/PersonalData"
+
+const App = () => {
+  const [person, setPerson] = useState([{name:'Artur Hellas', phone: 3153463653}])
+  const [newName, setNewName] = useState('')
+  const [newPhone, setNewPhone] = useState('')
+
+  const validNewName = (e) => {
+    e.preventDefault()
+    const name = person.map(e => e.name)
+    !name.includes(newName) ? addNewName() : alert(`The name ${newName} already exist`)
+  }
+
+  const addNewName = (e) => {
+    const nameObjet = {
+      name: newName,
+      phone: newPhone,
+      id: person.length + 1
+    }
+    setPerson(person.concat(nameObjet))
+    setNewName('')
+    setNewPhone('')    
+  }
+
+  const handleNameChange = (e) => {
+    setNewName(e.target.value)
+  }
+
+  const handlePhoneChange = (e) => {
+    setNewPhone(e.target.value)
+  } 
+
+  return (
+    <div>
+      <h2>PhoneBook</h2>
+      <form onSubmit={validNewName} >
+        <div>
+          name: <input value={newName} onChange={handleNameChange} />
+        </div>
+        <div>
+          number: <input value={newPhone} onChange={handlePhoneChange} />
+        </div>
+        <div>
+          <button type='submit'>Add</button>
+        </div>
+      </form>
+      <h2>Numbers</h2>
+      <ul>
+        {person.map(ele =>
+          <NewName key={ele.id} data={ele} />
+        )}
+      </ul>
+    </div>
+  )
+}
+
+
+export default App;
+
+const NewName = ({ data }) => {
+    return (
+      <li>{data.name} {data.phone}</li>
+    )
+}
+  
+export default NewName
