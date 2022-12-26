@@ -1,0 +1,129 @@
+import { useState } from 'react' 
+import Filter from './components/FilterName'
+import PersonForm from './components/PersonalData'
+import Persons from './components/PersonsShow'
+
+const App = () => {
+  const [persons, setPersons] = useState([
+    { name: 'Arto Hellas', number: '040-123456', id: 1 },
+    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
+    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
+    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
+  ])
+
+  const [newName, setNewName] = useState('')
+  const [newPhone, setNewPhone] = useState('')
+  const [filter, setFilter] = useState('')
+
+  const handleFilter = (e) => {
+    setFilter(e.target.value)    
+  }
+
+  const validNewName = (e) => {
+    e.preventDefault()
+    const name = persons.map(e => e.name)
+    !name.includes(newName) ? addNewName() : alert(`The name ${newName} already exist`)
+  }
+
+  const addNewName = (e) => {
+    const nameObjet = {
+      name: newName,
+      number: newPhone,
+      id: persons.length + 1
+    }
+    setPersons(persons.concat(nameObjet))
+    setNewName('')
+    setNewPhone('')    
+  }
+
+  const handleNameChange = (e) => {
+    setNewName(e.target.value)
+  }
+
+  const handlePhoneChange = (e) => {
+    setNewPhone(e.target.value)
+  } 
+
+  return (
+    <div>
+
+      <h2>PhoneBook</h2>
+      <Filter value={filter} func={handleFilter} />      
+
+      <h2>Add a new</h2>
+      <PersonForm valueName={newName} valueNumber={newPhone} funcForm={validNewName} funcName={handleNameChange} funcNumber={handlePhoneChange} />
+
+      <h2>Numbers</h2>
+      <Persons value={filter} data={persons} />
+        
+    </div>
+  )
+}
+
+
+export default App;
+
+// Filter
+const Filter = ({ value, func }) => {
+    return (
+        < >
+           Filter shown with: <input value={value} onChange={func} /> 
+        </>
+    )
+  }
+  
+export default Filter
+
+//PersonalForm
+const PersonForm = ({ valueName, valueNumber, funcForm, funcName, funcNumber }) => {
+    return (
+        <form onSubmit={funcForm} >
+            <div>
+                name: <input value={valueName} onChange={funcName} />
+            </div>
+            <div>
+                number: <input value={valueNumber} onChange={funcNumber} />
+            </div>
+            <div>
+                <button type='submit'>Add</button>
+            </div>
+      </form>
+
+    )
+  }
+  
+export default PersonForm
+
+//Persons
+import NewName from "./ShowData";
+
+const Normal = ({data}) => data.map(ele => 
+  <NewName key={ele.id} data={ele} />)
+
+const Filter = ({data, value}) => {
+  const newPersons = data.filter(e => e.name.slice(0,1) === value.toUpperCase())
+  if (newPersons.length !== 0) {
+    return newPersons.map(ele => 
+      <NewName key={ele.id} data={ele} />)
+  }else {
+    return alert('Nothing to show')
+  }
+}  
+
+const Persons = ({ value, data }) => {
+  if (value === '') {
+    return (
+      <ul>
+        <Normal data={data} />
+      </ul>
+    )
+  }else {
+    return (
+      <ul>
+        <Filter data={data} value={value} />
+      </ul>
+    )
+  }
+}
+
+export default Persons
