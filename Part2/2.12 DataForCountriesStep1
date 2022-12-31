@@ -1,0 +1,74 @@
+import axios from 'axios'
+import { useState, useEffect } from 'react' 
+import Filter from './components/FilterName'
+import ShowCountries from './components/filterCountries'
+
+
+const App = () => {
+  const [countries, setCountries] = useState([])
+  const [filter, setFilter] = useState('')
+
+  useEffect(() => {
+    axios
+      .get('https://restcountries.com/v3.1/all')
+      .then(respnse => {
+        setCountries(respnse.data)
+      })
+  }, [])
+
+  const handleFilter = (e) => {
+    setFilter(e.target.value)    
+  }
+
+  return (
+    <div>
+      <h2>Find Countries Info</h2>
+      <Filter value={filter} func={handleFilter} />
+
+      <h3>Show Matches</h3>      
+      <ShowCountries data={countries} value={filter} />
+        
+    </div>
+  )
+}
+
+
+export default App;
+
+//* ShowCountries
+
+const ShowCountries = ({data, value}) => {
+  const regexp = new RegExp(`${value}`, 'gi')
+  const filterCountries = data.filter(e => e.name.common.match(regexp))
+
+  if (value === '') return (<p> {'Nothing to show'} </p>)
+
+  if (filterCountries.length === 1 || filterCountries.length === 2) {
+    const cLanguages = Object.values(filterCountries[0].languages)   
+  
+    return (
+      <>
+        <h4> {filterCountries[0].name.common} </h4>
+        <span>
+          capital: {filterCountries[0].capital} <br></br>
+          area:    {filterCountries[0].area} 
+        </span>
+
+        <h5>languages:</h5>
+        <ul>
+          {
+            cLanguages.map(e => <li key={e}> {e} </li>)  
+          }
+        </ul>
+        <h5> Flag </h5>
+        <img src={filterCountries[0].flags.png} ></img>
+       </>
+    )
+  }
+  
+  if (filterCountries.length <= 10) return filterCountries.map(e => <> <span> {e.name.common} </span> <br></br> </> )
+  
+  return (<p> {'Too many matches, especify another filter'} </p>)
+}
+
+export default ShowCountries
