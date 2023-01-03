@@ -1,0 +1,133 @@
+import axios from 'axios'
+import { useState, useEffect } from 'react' 
+import Filter from './components/FilterName'
+import ShowCountries from './components/filterCountries'
+
+const App = () => {
+  const [countries, setCountries] = useState([])
+  const [filter, setFilter] = useState('')
+
+  useEffect(() => {
+    axios
+      .get('https://restcountries.com/v3.1/all')
+      .then(respnse => {
+        setCountries(respnse.data)
+      })
+  }, [])
+
+  const handleFilter = (e) => {
+    setFilter(e.target.value)    
+  }
+
+  return (
+    <div>
+      <h2>Find Countries Info</h2>
+      <Filter value={filter} func={handleFilter} />
+
+      <h3>Show Matches</h3>      
+      <ShowCountries data={countries} value={filter} />
+    </div>
+  )
+}
+
+
+export default App;
+
+//Filter
+const Filter = ({ value, func }) => {
+    return (
+        < >
+           Find countries with: <input value={value} onChange={func} /> 
+        </>
+    )
+  }
+  
+export default Filter
+
+//ShowCountries
+import OneCountry from "./oneCountry";
+import LessTenCountries from "./lessTenCountries";
+
+const ShowCountries = ({data, value}) => {
+  const regexp = new RegExp(`${value}`, 'gi')
+  const filterCountries = data.filter(e => e.name.common.match(regexp))
+
+  if (value === '') return (<p> {'Nothing to show'} </p>)
+
+  if (filterCountries.length === 1 || filterCountries.length === 2) {
+    const cLanguages = Object.values(filterCountries[0].languages)   
+    return (
+      <OneCountry countries={filterCountries} languages={cLanguages} />
+    )
+  }
+  
+  if (filterCountries.length <= 10) return (<LessTenCountries countries={filterCountries} />)
+
+  return (<p> {'Too many matches, especify another filter'} </p>)
+}
+
+export default ShowCountries  
+
+//OneCountry
+const OneCountry = ({countries, languages}) => {
+    return (
+        <>
+            <h4> {countries[0].name.common} </h4>
+            <span>
+            capital: {countries[0].capital} <br></br>
+            area:    {countries[0].area} 
+            </span>
+
+            <h5>languages:</h5>
+            <ul>
+            {
+                languages.map(e => <li key={e}> {e} </li>)  
+            }
+            </ul>
+            <h5> Flag </h5>
+            <img src={countries[0].flags.png} ></img>
+        </>
+    )
+}
+
+export default OneCountry
+
+//LessTenCountries
+import OneCountry from "./oneCountry"
+import { useState } from "react"
+
+const LessTenCountries = ({countries, fun}) => {
+    const [country, setCountry] = useState([])
+    const [languages, setLanguages] = useState([])
+
+    const handleClick = (e) => {
+        const countryName = e.target.value
+        const countryObjet = countries.filter(e => e.name.common === countryName)
+        const cLanguages = Object.values(countryObjet[0].languages)   
+    
+        setCountry(countryObjet)
+        setLanguages(cLanguages)        
+
+    }
+
+    return (
+    <>
+      {
+        countries.map(e => 
+          <> 
+            <span key={e.name.common} > 
+              {e.name.common} 
+                <button type="button" value={e.name.common} key={e.name.common} onClick={handleClick}> Show </button> 
+            </span> <br></br> 
+          </>
+        )
+      }
+      { 
+      country.length && languages.length !== 0 ? <OneCountry countries={country} languages={languages} /> : ''
+      } 
+    </>
+
+    )
+}
+
+export default LessTenCountries
