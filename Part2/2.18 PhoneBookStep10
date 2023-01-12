@@ -1,0 +1,172 @@
+import { useState, useEffect } from 'react' 
+import Filter from './components/FilterName'
+import PersonForm from './components/PersonalData'
+import Persons from './components/PersonsShow'
+import pBookService from './services/phonebook'
+
+const App = () => {
+  const [persons, setPersons] = useState([])
+  const [newName, setNewName] = useState('')
+  const [newPhone, setNewPhone] = useState('')
+  const [filter, setFilter] = useState('')
+
+
+  useEffect(() => {
+    pBookService
+      .getAll()
+      .then(initialData => {
+        setPersons(initialData)
+      })
+  }, [])
+
+  const handleFilter = (e) => {
+    setFilter(e.target.value)    
+  }
+
+  const validNewName = (e) => {
+    e.preventDefault()
+    const name = persons.map(e => e.name)
+    if (name.includes(newName)) {
+      const data = persons.find(n => n.name === newName)
+      const changeData = {...data, number: newPhone}
+      const confirmData = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)
+      if (confirmData) {
+        pBookService
+          .update(data.id, changeData)
+          .then(returnedData => {
+            setPersons(persons.map(n => n.name !== newName ? n : returnedData))
+            setNewName('')
+            setNewPhone('')
+          })        
+      }
+    }else {
+      addNewName()
+    }
+  }
+
+  const addNewName = (e) => {
+    const nameObjet = {
+      name: newName,
+      number: newPhone,
+    }
+
+    pBookService
+      .create(nameObjet)
+      .then(returnedData => {
+        setPersons(persons.concat(returnedData))
+        setNewName('')
+        setNewPhone('')    
+      })
+  }
+
+  const handleNameChange = (e) => {
+    setNewName(e.target.value)
+  }
+
+  const handlePhoneChange = (e) => {
+    setNewPhone(e.target.value)
+  } 
+
+  return (
+    <div>
+      <h2>PhoneBook</h2>
+      <Filter value={filter} func={handleFilter} />      
+
+      <h2>Add a new</h2>
+      <PersonForm 
+        valueName={newName} 
+        valueNumber={newPhone} 
+        funcForm={validNewName} 
+        funcName={handleNameChange} 
+        funcNumber={handlePhoneChange}
+      />
+
+      <h2>Numbers</h2>
+      <Persons value={filter} data={persons} />
+        
+    </div>
+  )
+}
+
+export default App;
+
+// Services
+import axios from "axios"
+const baseUrl = 'http://localhost:3001/persons'
+
+const getAll = () => {
+    const request = axios.get(baseUrl)
+    return request.then(response => response.data)
+}
+
+const create = nameObject => {
+    const request = axios.post(baseUrl, nameObject)
+    return request.then(response => response.data)
+}
+
+const update = (id, newObject) => {
+    const request = axios.put(`${baseUrl}/${id}`, newObject)
+    return request.then(response => response.data)
+}
+
+const deleted = id => {
+    const request = axios.delete(`${baseUrl}/${id}`)
+    return request.then(response => response.data)
+}
+
+export default { getAll, create, update, deleted }
+
+// Persons
+import NewName from "./ShowData";
+import pBookService from '../services/phonebook'
+
+const deletedDataOf = (ele) => {
+  if (window.confirm(`Delete ${ele.name}`)) {
+    pBookService
+      .deleted(ele.id)
+      .then(reloadPage => {
+        document.location.reload(true)
+      })
+    }
+}  
+
+const Normal = ({data}) => data.map(ele => 
+  <NewName 
+    key={ele.id} 
+    data={ele} 
+    deletedData={() => deletedDataOf(ele)} 
+  />)
+
+const Filter = ({data, value}) => {
+  const newPersons = data.filter(e => e.name.slice(0,1) === value.toUpperCase())
+  if (newPersons.length !== 0) {
+    return newPersons.map(ele => 
+      <NewName 
+        key={ele.id} 
+        data={ele} 
+        deletedData={() => deletedDataOf(ele)}
+      />)
+  }else {
+    return alert('Nothing to show')
+  }
+}  
+
+const Persons = ({ value, data }) => {
+  if (value === '') {
+    return (
+      <ul>
+        <Normal data={data} />
+      </ul>
+    )
+  }else {
+    return (
+      <ul>
+        <Filter data={data} value={value} />
+      </ul>
+    )
+  }
+}
+
+export default Persons
+
+
