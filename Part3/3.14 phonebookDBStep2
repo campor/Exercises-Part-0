@@ -1,0 +1,71 @@
+// Change the backend so that new numbers are saved to the database MongoDB
+
+require('dotenv').config()
+const express = require('express')
+const app = express()
+const Person = require('../models/person')
+
+app.use(express.json())
+app.use(express.static('build'))
+
+const unknownEndpoint = (req, res) => {
+  res.status(400).send({error: 'unknown endpoint'})
+}
+
+app.get('/', (req, res) => {
+    res.send('<h1>Wellcome to Phone Book Backend</h1>')
+})
+
+app.get('/api/persons', (req, res) => {
+  Person.find({}).then (data => {
+    res.json(data)
+  })
+})
+
+app.get('/info', (req, res) => {
+  res.send(`<h3> Phonebook has info for ${persons.length} people <br> ${new Date()} </h3>`)
+})
+
+app.get('/api/persons/:id', (req, res) => {
+  Person.findById(req.params.id).then(person => {
+    res.json(person)
+  })
+})
+
+app.delete('/api/persons/:id', (req, res) => {
+  const id = Number(req.params.id)
+  persons = persons.filter(e => e.id !== id)
+  res.status(202).end()
+})
+
+app.put('/api/persons/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const newData = req.body
+  persons = persons.map (n => n.id !== id ? n : newData)
+  res.json(newData)
+})
+
+app.post('/api/persons', (req, res) => {
+  const newPerson = req.body
+  console.log(newPerson.name, newPerson.number);
+
+  if (!newPerson.name || !newPerson.number) {
+    return res.status(404).json({ error: 'content missing' })
+  }
+
+  const person = new Person({
+    name: newPerson.name,
+    number: newPerson.number,
+  })
+
+  person.save().then(savedPerson => {
+    res.json(savedPerson)
+  })
+})
+
+app.use(unknownEndpoint)
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
